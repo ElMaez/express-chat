@@ -8,21 +8,18 @@ import express from 'express';
 // Man skal kunne læse beskederne.
 // Man skal kunne sende sin egen besked.
 
-
-
-
 const app = express();
 const port = 3000;
 
 const chat = [
     { 
-    id: "fortløbende nummer",
+    id: "1",
     user: "Jeff",
     text: "den tekst der er skrevet",
     timestamp: "dato her",
     },
     { 
-    id: "fortløbende nummer",
+    id: "2",
     user: "Hreff",
     text: "den tekst der er skrevet",
     timestamp: "dato her",
@@ -30,11 +27,23 @@ const chat = [
 ]
 
 app.get('/',(req,res)=>{
-    chat.forEach(message => {
-        res.send(`${message.id},${message.user}`);
-    });
+        res.json(chat);
 });
 
+app.post('/chat',(req,res)=>{
+    const {user, text} = req.body ?? {};
+
+    const message = {
+        id: nextId++,
+        user: user,
+        text: text,
+        timestamp: new Date().timestamp()
+    }
+})
+
+// app.patch('/',(req,res)=>{
+
+// });
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
