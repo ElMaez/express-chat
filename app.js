@@ -32,7 +32,9 @@ app.get('/',(req,res)=>{
 
 app.post('/chat',(req,res)=>{
     const {user, text} = req.body ?? {};
-
+    const messageId = chat.length()
+    console.log(`ID? ${messageId} chat: ${chat}`);
+    
     const message = {
         id: nextId++,
         user: user,
@@ -40,11 +42,10 @@ app.post('/chat',(req,res)=>{
         timestamp: new Date().timestamp()
     }
 })
-
 // app.patch('/',(req,res)=>{
-
-// });
-
-app.listen(port, () => {
+    
+    // });
+    
+    app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 })
