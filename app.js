@@ -1,51 +1,73 @@
 import express from 'express';
-
-//      To Do:
-// Install NPM. done.
-// Install Express. done.
-// Hello World. done med, HUH?!
-// Lav et hardcoded array med message data. done.
-// Man skal kunne læse beskederne.
-// Man skal kunne sende sin egen besked.
+import { pool } from './database.js';
 
 const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
+
 const port = 3000;
 
-const chat = [
-    { 
-    id: "1",
-    user: "Jeff",
-    text: "den tekst der er skrevet",
-    timestamp: "dato her",
-    },
-    { 
-    id: "2",
-    user: "Hreff",
-    text: "den tekst der er skrevet",
-    timestamp: "dato her",
-    }
-]
 
 app.get('/',(req,res)=>{
-        res.json(chat);
+        res.sendFile('index.html', { root: import.meta.dirname });
 });
 
-app.post('/chat',(req,res)=>{
-    const {user, text} = req.body ?? {};
-    const messageId = chat.length()
-    console.log(`ID? ${messageId} chat: ${chat}`);
-    
-    const message = {
-        id: nextId++,
-        user: user,
-        text: text,
-        timestamp: new Date().timestamp()
+app.get('/chat', async (req, res) => {
+    let db;
+
+    try {
+        db = await pool.getConnection();
+
+        const [messages] = await db.query(
+            'SELECT * FROM messages ORDER BY id'
+        );
+
+        return res.json(messages);
+    } catch (error) {
+        console.error('Database error:', error.message);
+        return res.status(500).json({ error: 'Could not load messages' });
+    } finally {
+        if (db) {
+            db.release();
+        }
     }
-})
-// app.patch('/',(req,res)=>{
-    
-    // });
-    
+});
+
+
+app.post('/chat', async (req, res) => {
+    const { user, text } = req.body ?? {};
+
+    if (typeof user !== 'string' || typeof text !== 'string' ||
+        !user.trim() || !text.trim()) {
+        return res.status(400).json({ error: 'User and text are required' });
+    }
+
+    let db;
+
+    try {
+        db = await pool.getConnection();
+
+        await db.query(
+            'INSERT INTO messages (`user`, `text`) VALUES (?, ?)',
+            [user, text]
+        );
+
+        const [messages] = await db.query(
+            'SELECT * FROM messages ORDER BY id'
+        );
+
+        return res.redirect(303, '/');
+    } catch (error) {
+        console.error('Database error:', error.message);
+        return res.status(500).json({ error: 'Database request failed' });
+    } finally {
+        if (db) {
+            db.release();
+        }
+    }
+});
+
     app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 })

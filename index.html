@@ -9,8 +9,30 @@
     <main>
         <section id="chatroom">
             <h1>Chatroom 1</h1>
-            <Button id="sendMessage">send message</Button>
+            <ul id="messageList">
+            </ul>
+            <form action="http://localhost:3000/chat" method="post">
+                <input name="user" type="text" aria-label="user" placeholder="Your name">
+                <input name="text" type="text" aria-label="text" placeholder="Your message">
+                <Button type="submit">send message</Button>
+            </form>
         </section>
     </main>
+
+
+            <script>
+                async function loadMessages() {
+                    const response = await fetch('/chat');
+                    const messages = await response.json();
+                    const messageList = document.querySelector('#messageList');
+                    messageList.replaceChildren();
+                    for (const message of messages) {
+                        const item = document.createElement('li');
+                        item.textContent = `${message.user}: ${message.text}`;
+                        messageList.appendChild(item);
+                    }
+                }
+                loadMessages().catch(console.error);
+            </script>
 </body>
 </html>
